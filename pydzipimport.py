@@ -96,9 +96,11 @@ class PydZipImporter(zipimport.zipimporter):
             suffix, fullpath = info
             fakepath = self.archive + os.sep + fullpath
             data = self.get_data(fullpath)
+
             ext = suffix
             if ext.startswith('/__init__'):
                 ext = ext[len('/__init__'):]
+            ext = '.' + fullname.split('.')[-1] + ext
             return TemporaryExtensionFileLoader(fullname, fakepath, data, ext), []
 
         return super().find_loader(fullname, path)
@@ -116,6 +118,7 @@ class TemporaryExtensionFileLoader:
             suffix = EXTENSION_SUFFIXES[0]
         self.data = tempfile.NamedTemporaryFile(suffix=suffix)
         self.data.write(data)
+        self.data.flush()
         self.path = path
         self.name = name
 
