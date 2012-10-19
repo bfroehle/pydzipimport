@@ -1,0 +1,3 @@
+# Cython-generated files
+test/sample/__init__.c binary
+test/sample/two.c binary

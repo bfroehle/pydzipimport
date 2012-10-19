@@ -1,3 +1,7 @@
 *~
+*.py[oc]
 __pycache__
 build
+
+# Test files:
+test/sample.zip
