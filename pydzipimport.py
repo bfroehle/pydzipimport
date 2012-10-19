@@ -52,8 +52,10 @@ class PydZipImporter(zipimport.zipimporter):
     _extension_searchorder = ['/__init__' + s for s in EXTENSION_SUFFIXES] + \
                              EXTENSION_SUFFIXES
 
-    def get_extension_module_info(self, fullname):
-        """Get the suffix & path of the extension module by name 'fullname'"""
+    def _get_extension_module_info(self, fullname):
+        """Get the suffix & path of the extension module by name 'fullname',
+        returing `None` if no extension module is found.
+        """
         subname = fullname.split('.')[-1]
         path = self.prefix + subname.replace('.', os.sep)
 
@@ -62,17 +64,13 @@ class PydZipImporter(zipimport.zipimporter):
             if fullpath in self._files:
                 return suffix, fullpath
 
-    def is_extension_module(self, fullname):
-        """Return a bool signifying whether the module is a package or not."""
-        return bool(self.get_extension_module_info(fullname))
-
     # We replace the machinery used to find modules by one which first
     # checks for the existence of a C extension module in the archive,
     # before deferring to zipimport.zipimporter.
 
     def is_package(self, fullname):
         """Return a bool signifying whether the module is a package or not."""
-        info = self.get_extension_module_info(fullname)
+        info = self._get_extension_module_info(fullname)
         if info and info[0].startswith('/__init__'):
             return True
         return super().is_package(fullname)
@@ -91,7 +89,7 @@ class PydZipImporter(zipimport.zipimporter):
         'fullname', or whether it could be a portion of a namespace
         package.
         """
-        info = self.get_extension_module_info(fullname)
+        info = self._get_extension_module_info(fullname)
         if info:
             suffix, fullpath = info
             fakepath = self.archive + os.sep + fullpath
@@ -101,7 +99,8 @@ class PydZipImporter(zipimport.zipimporter):
             if ext.startswith('/__init__'):
                 ext = ext[len('/__init__'):]
             ext = '.' + fullname.split('.')[-1] + ext
-            return TemporaryExtensionFileLoader(fullname, fakepath, data, ext), []
+            return (TemporaryExtensionFileLoader(fullname, fakepath, data, ext),
+                    [])
 
         return super().find_loader(fullname, path)
 
@@ -113,9 +112,7 @@ class TemporaryExtensionFileLoader:
     Based upon `importlib.machinery.ExtensionFileLoader`.
     """
 
-    def __init__(self, name, path, data, suffix=None):
-        if suffix is None:
-            suffix = EXTENSION_SUFFIXES[0]
+    def __init__(self, name, path, data, suffix):
         self.data = tempfile.NamedTemporaryFile(suffix=suffix)
         self.data.write(data)
         self.data.flush()
