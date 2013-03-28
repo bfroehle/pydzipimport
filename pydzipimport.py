@@ -49,8 +49,9 @@ class PydZipImporter(zipimport.zipimporter):
     writen to a temporary file.
     """
 
-    _extension_searchorder = ['/__init__' + s for s in EXTENSION_SUFFIXES] + \
-                             EXTENSION_SUFFIXES
+    _extension_searchorder = \
+        [os.sep + '__init__' + s for s in EXTENSION_SUFFIXES] + \
+        EXTENSION_SUFFIXES
 
     def _get_extension_module_info(self, fullname):
         """Get the suffix & path of the extension module by name 'fullname',
@@ -71,7 +72,7 @@ class PydZipImporter(zipimport.zipimporter):
     def is_package(self, fullname):
         """Return a bool signifying whether the module is a package or not."""
         info = self._get_extension_module_info(fullname)
-        if info and info[0].startswith('/__init__'):
+        if info and info[0].startswith(os.sep + '__init__'):
             return True
         return super().is_package(fullname)
 
@@ -96,8 +97,8 @@ class PydZipImporter(zipimport.zipimporter):
             data = self.get_data(fullpath)
 
             ext = suffix
-            if ext.startswith('/__init__'):
-                ext = ext[len('/__init__'):]
+            if ext.startswith(os.sep + '__init__'):
+                ext = ext[len(os.sep + '__init__'):]
             ext = '.' + fullname.split('.')[-1] + ext
             return (TemporaryExtensionFileLoader(fullname, fakepath, data, ext),
                     [])

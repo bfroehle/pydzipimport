@@ -77,9 +77,9 @@ def prepare_sample_zip(file):
         b.run()
 
         zf.write(b.get_ext_fullpath('sample.__init__'),
-                 'sample/__init__' + SO_EXT)
+                 os.path.join('sample', '__init__' + SO_EXT))
         zf.write(b.get_ext_fullpath('sample.two'),
-                 'sample/two' + SO_EXT)
+                 os.path.join('sample', 'two' + SO_EXT))
 
     zf.close()
 
